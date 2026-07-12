@@ -47,7 +47,7 @@
       opacity: 0.7;
       cursor: not-allowed;
     }
-    .result, .recalls {
+    .result, .recalls, .issues {
       margin-top: 24px;
       padding: 16px;
       background: #f2f4f3;
@@ -64,14 +64,14 @@
       color: #2f6d2f;
       font-weight: bold;
     }
-    .recall-card {
+    .recall-card, .issue-card {
       background: white;
       border-radius: 12px;
       padding: 14px;
       margin-top: 14px;
       border: 1px solid #dddddd;
     }
-    .recall-title {
+    .recall-title, .issue-title {
       font-weight: bold;
       margin-bottom: 8px;
     }
@@ -82,6 +82,16 @@
       background: #fff7e8;
       color: #7a4b00;
       font-weight: bold;
+    }
+    .issue-severity {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      background: #efe7d6;
+      color: #7a4b00;
     }
   </style>
 </head>
@@ -103,6 +113,11 @@
       <h2>Recall check</h2>
       <div id="recallsContent"></div>
     </div>
+
+    <div class="issues" id="issuesBox" style="display:none;">
+      <h2>Known issues to inspect</h2>
+      <div id="issuesContent"></div>
+    </div>
   </div>
 
   <script>
@@ -111,16 +126,119 @@
       return text.length > max ? text.slice(0, max).trim() + "..." : text;
     }
 
+    const knownIssuesLibrary = [
+      {
+        make: "NISSAN",
+        modelIncludes: ["ALTIMA", "SENTRA", "ROGUE", "PATHFINDER", "VERSA", "MAXIMA"],
+        yearMin: 2013,
+        yearMax: 2020,
+        issue: "CVT transmission reputation",
+        severity: "High priority check",
+        inspect: "Ask about transmission replacement, slipping, delayed acceleration, shuddering, and fluid service history.",
+        note: "Many shoppers specifically watch these vehicles for CVT-related complaints."
+      },
+      {
+        make: "SUBARU",
+        modelIncludes: ["OUTBACK", "FORESTER", "IMPREZA", "LEGACY"],
+        yearMin: 2000,
+        yearMax: 2012,
+        issue: "Head gasket concern on older Subaru engines",
+        severity: "High priority check",
+        inspect: "Look for overheating history, coolant loss, oil leaks, sweet smell from engine bay, or head gasket replacement records.",
+        note: "Older Subaru models are often discussed for head gasket issues, especially before later engine updates."
+      },
+      {
+        make: "BMW",
+        modelIncludes: ["328I", "528I", "X3", "X5"],
+        yearMin: 2007,
+        yearMax: 2015,
+        issue: "Timing chain / guide wear on certain engines",
+        severity: "Important check",
+        inspect: "Listen for rattling at startup, ask about timing chain service, and review oil-change history carefully.",
+        note: "Timing chain issues can become expensive if ignored."
+      },
+      {
+        make: "AUDI",
+        modelIncludes: ["A4", "A5", "Q5"],
+        yearMin: 2009,
+        yearMax: 2017,
+        issue: "Timing chain tensioner and oil consumption concerns",
+        severity: "Important check",
+        inspect: "Ask about oil usage between changes, startup noise, tensioner updates, and maintenance records.",
+        note: "Some buyers specifically screen these models for timing and oil-consumption issues."
+      },
+      {
+        make: "VOLKSWAGEN",
+        modelIncludes: ["PASSAT", "JETTA", "TIGUAN", "CC"],
+        yearMin: 2008,
+        yearMax: 2016,
+        issue: "Timing chain tensioner / turbo-related concerns on some engines",
+        severity: "Important check",
+        inspect: "Check for rough cold starts, timing service records, turbo performance issues, and oil consumption.",
+        note: "Maintenance history matters a lot on these vehicles."
+      },
+      {
+        make: "FORD",
+        modelIncludes: ["FOCUS", "FIESTA"],
+        yearMin: 2012,
+        yearMax: 2018,
+        issue: "Dual-clutch transmission complaints",
+        severity: "High priority check",
+        inspect: "Ask about hesitation, jerking, clutch replacements, transmission software updates, and stop-and-go drivability.",
+        note: "These models are commonly discussed for transmission behavior problems."
+      },
+      {
+        make: "HONDA",
+        modelIncludes: ["ACCORD", "CIVIC", "CR-V"],
+        yearMin: 2016,
+        yearMax: 2021,
+        issue: "Turbo engine oil dilution check on some models",
+        severity: "Watch item",
+        inspect: "Ask about fuel smell in oil, frequent oil changes, software updates, and cold-weather driving patterns.",
+        note: "Not every vehicle is affected, but it is worth checking service history."
+      }
+    ];
+
+    function getKnownIssues(vehicle) {
+      const make = (vehicle.Make || "").toUpperCase();
+      const model = (vehicle.Model || "").toUpperCase();
+      const year = parseInt(vehicle.ModelYear || "0", 10);
+
+      const matches = knownIssuesLibrary.filter(item => {
+        const makeMatch = item.make === make;
+        const modelMatch = item.modelIncludes.some(m => model.includes(m));
+        const yearMatch = year >= item.yearMin && year <= item.yearMax;
+        return makeMatch && modelMatch && yearMatch;
+      });
+
+      if (matches.length > 0) {
+        return matches;
+      }
+
+      return [
+        {
+          issue: "No specific library match found",
+          severity: "General used-car inspection",
+          inspect: "Check maintenance records, fluid leaks, cold start behavior, transmission shift quality, suspension noise, tire wear, and warning lights.",
+          note: "Even when no specific rule matches, always verify service history and get a pre-purchase inspection."
+        }
+      ];
+    }
+
     async function analyzeVin() {
       const vinInput = document.getElementById('vin');
       const button = document.getElementById('analyzeBtn');
       const result = document.getElementById('result');
       const recallsBox = document.getElementById('recallsBox');
       const recallsContent = document.getElementById('recallsContent');
+      const issuesBox = document.getElementById('issuesBox');
+      const issuesContent = document.getElementById('issuesContent');
       const vin = vinInput.value.trim().toUpperCase();
 
       recallsBox.style.display = 'none';
       recallsContent.innerHTML = '';
+      issuesBox.style.display = 'none';
+      issuesContent.innerHTML = '';
 
       if (vin.length !== 17) {
         result.innerHTML = "Please enter a valid 17-character VIN.";
@@ -187,6 +305,20 @@
               <div class="buyer-note">Ask the seller for proof that recall repairs were completed.</div>
             `;
           }
+
+          const issues = getKnownIssues(vehicle);
+          issuesBox.style.display = 'block';
+          issuesContent.innerHTML = `
+            ${issues.map(item => `
+              <div class="issue-card">
+                <div class="issue-title">${item.issue}</div>
+                <div><span class="label">What to inspect:</span> ${item.inspect}</div>
+                <div style="margin-top:8px;"><span class="label">Why it matters:</span> ${item.note}</div>
+                <div class="issue-severity">${item.severity}</div>
+              </div>
+            `).join('')}
+            <div class="buyer-note">If the vehicle matches one of these patterns, ask for service records and consider a pre-purchase inspection before buying.</div>
+          `;
         }
       } catch (error) {
         result.innerHTML = "Something went wrong while looking up that VIN.";
