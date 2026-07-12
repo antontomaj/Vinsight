@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VINsight</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f5;
+      color: #222;
+      margin: 0;
+      padding: 40px 20px;
+      line-height: 1.5;
+    }
+    .wrap {
+      max-width: 700px;
+      margin: 0 auto;
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 2rem;
+    }
+    input, button {
+      font-size: 1rem;
+      padding: 12px;
+      width: 100%;
+      margin-top: 10px;
+      box-sizing: border-box;
+    }
+    button {
+      background: #0b6b6f;
+      color: white;
+      border: none;
+      border-radius: 10px;
+    }
+    .result {
+      margin-top: 24px;
+      padding: 16px;
+      background: #f2f4f3;
+      border-radius: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>VINsight</h1>
+    <p>Know what to inspect before you buy.</p>
+
+    <label for="vin">Enter VIN</label>
+    <input id="vin" type="text" placeholder="Enter 17-character VIN" />
+
+    <button onclick="analyzeVin()">Analyze VIN</button>
+
+    <div class="result" id="result">
+      Your vehicle report will show up here.
+    </div>
+  </div>
+
+  <script>
+    function analyzeVin() {
+      const vin = document.getElementById('vin').value.trim().toUpperCase();
+      const result = document.getElementById('result');
+
+      if (vin.length !== 17) {
+        result.innerHTML = "Please enter a valid 17-character VIN.";
+        return;
+      }
+
+      result.innerHTML = `
+        <strong>VIN:</strong> ${vin}<br><br>
+        <strong>Status:</strong> Prototype working.<br>
+        <strong>Next step:</strong> Connect live VIN decoding and recall data.
+      `;
+    }
+  </script>
+</body>
+</html>
