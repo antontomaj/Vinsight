@@ -37,12 +37,21 @@
       color: white;
       border: none;
       border-radius: 10px;
+      cursor: pointer;
+    }
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
     }
     .result {
       margin-top: 24px;
       padding: 16px;
       background: #f2f4f3;
       border-radius: 12px;
+      white-space: normal;
+    }
+    .label {
+      font-weight: bold;
     }
   </style>
 </head>
@@ -52,9 +61,9 @@
     <p>Know what to inspect before you buy.</p>
 
     <label for="vin">Enter VIN</label>
-    <input id="vin" type="text" placeholder="Enter 17-character VIN" />
+    <input id="vin" type="text" placeholder="Enter 17-character VIN" maxlength="17" />
 
-    <button onclick="analyzeVin()">Analyze VIN</button>
+    <button id="analyzeBtn" onclick="analyzeVin()">Analyze VIN</button>
 
     <div class="result" id="result">
       Your vehicle report will show up here.
@@ -62,20 +71,51 @@
   </div>
 
   <script>
-    function analyzeVin() {
-      const vin = document.getElementById('vin').value.trim().toUpperCase();
+    async function analyzeVin() {
+      const vinInput = document.getElementById('vin');
+      const button = document.getElementById('analyzeBtn');
       const result = document.getElementById('result');
+      const vin = vinInput.value.trim().toUpperCase();
 
       if (vin.length !== 17) {
         result.innerHTML = "Please enter a valid 17-character VIN.";
         return;
       }
 
-      result.innerHTML = `
-        <strong>VIN:</strong> ${vin}<br><br>
-        <strong>Status:</strong> Prototype working.<br>
-        <strong>Next step:</strong> Connect live VIN decoding and recall data.
-      `;
+      button.disabled = true;
+      button.textContent = "Looking up VIN...";
+      result.innerHTML = "Checking VIN...";
+
+      try {
+        const url = `https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvalues/${vin}?format=json`;
+        const response = await fetch(url);
+        const data = await response.json();
+        const vehicle = data.Results && data.Results[0];
+
+        if (!vehicle) {
+          result.innerHTML = "No data returned for this VIN.";
+          return;
+        }
+
+        result.innerHTML = `
+          <div><span class="label">VIN:</span> ${vin}</div>
+          <div><span class="label">Year:</span> ${vehicle.ModelYear || "Not found"}</div>
+          <div><span class="label">Make:</span> ${vehicle.Make || "Not found"}</div>
+          <div><span class="label">Model:</span> ${vehicle.Model || "Not found"}</div>
+          <div><span class="label">Trim:</span> ${vehicle.Trim || "Not found"}</div>
+          <div><span class="label">Body Class:</span> ${vehicle.BodyClass || "Not found"}</div>
+          <div><span class="label">Engine Cylinders:</span> ${vehicle.EngineCylinders || "Not found"}</div>
+          <div><span class="label">Displacement (L):</span> ${vehicle.DisplacementL || "Not found"}</div>
+          <div><span class="label">Fuel Type:</span> ${vehicle.FuelTypePrimary || "Not found"}</div>
+          <br>
+          <div><span class="label">Next step:</span> Add recalls and known issue analysis.</div>
+        `;
+      } catch (error) {
+        result.innerHTML = "Something went wrong while looking up that VIN.";
+      } finally {
+        button.disabled = false;
+        button.textContent = "Analyze VIN";
+      }
     }
   </script>
 </body>
