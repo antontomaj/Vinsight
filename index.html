@@ -1,244 +1,418 @@
-<script>
-  const knownIssuesLibrary = [
-    {
-      make: "NISSAN",
-      modelIncludes: ["ALTIMA", "SENTRA", "ROGUE", "PATHFINDER", "VERSA", "MAXIMA", "MURANO"],
-      yearMin: 2013,
-      yearMax: 2020,
-      issue: "CVT transmission reputation",
-      severity: "High priority check",
-      inspect: "Ask about transmission replacement, slipping, delayed acceleration, shuddering, overheating, and fluid service history.",
-      note: "These models are commonly discussed for CVT-related complaints and expensive transmission repairs."
-    },
-    {
-      make: "NISSAN",
-      modelIncludes: ["FRONTIER", "XTERRA", "PATHFINDER"],
-      yearMin: 2005,
-      yearMax: 2010,
-      issue: "Radiator / transmission cross-contamination risk",
-      severity: "High priority check",
-      inspect: "Ask if the radiator was replaced, check for transmission slipping, pink milky fluid, and evidence of cooling-system repair.",
-      note: "Some older Nissan trucks and SUVs are known for radiator failures that can damage the transmission."
-    },
-    {
-      make: "SUBARU",
-      modelIncludes: ["OUTBACK", "FORESTER", "IMPREZA", "LEGACY", "BAJA"],
-      yearMin: 2000,
-      yearMax: 2012,
-      issue: "Head gasket concern on older Subaru engines",
-      severity: "High priority check",
-      inspect: "Look for overheating history, coolant loss, oil leaks, sweet smell from engine bay, and head gasket replacement records.",
-      note: "Older Subaru models are often discussed for head gasket issues before later engine updates."
-    },
-    {
-      make: "SUBARU",
-      modelIncludes: ["FORESTER", "OUTBACK", "LEGACY", "CROSSTREK"],
-      yearMin: 2011,
-      yearMax: 2016,
-      issue: "Oil consumption watch item",
-      severity: "Important check",
-      inspect: "Ask how often oil needed to be topped off, check service records, and look for low-oil warning history.",
-      note: "Some Subaru engines from this period are often discussed for elevated oil consumption."
-    },
-    {
-      make: "HONDA",
-      modelIncludes: ["ACCORD", "ODYSSEY", "PILOT"],
-      yearMin: 1998,
-      yearMax: 2008,
-      issue: "Automatic transmission weakness on some V6 models",
-      severity: "High priority check",
-      inspect: "Check for harsh shifts, slipping, delayed engagement, rebuild history, and transmission fluid service records.",
-      note: "Older Honda V6 vehicles are often screened for transmission durability concerns."
-    },
-    {
-      make: "HONDA",
-      modelIncludes: ["CIVIC", "ACCORD", "CR-V"],
-      yearMin: 2016,
-      yearMax: 2021,
-      issue: "Turbo engine oil dilution check on some models",
-      severity: "Watch item",
-      inspect: "Ask about fuel smell in oil, frequent oil changes, software updates, and driving pattern history.",
-      note: "Not every vehicle is affected, but this is worth checking in service records."
-    },
-    {
-      make: "TOYOTA",
-      modelIncludes: ["CAMRY", "COROLLA", "RAV4", "MATRIX"],
-      yearMin: 2006,
-      yearMax: 2011,
-      issue: "Oil consumption watch item on some engines",
-      severity: "Important check",
-      inspect: "Ask how often oil was added between changes, inspect exhaust smoke, and verify maintenance records.",
-      note: "Some Toyota 4-cylinder engines from this era are often discussed for oil use."
-    },
-    {
-      make: "TOYOTA",
-      modelIncludes: ["PRIUS"],
-      yearMin: 2010,
-      yearMax: 2015,
-      issue: "EGR / head gasket / hybrid battery watch items",
-      severity: "Important check",
-      inspect: "Ask about battery health, cooling fan cleaning, rough cold starts, misfires, and EGR service.",
-      note: "Higher-mileage Prius vehicles are often checked for battery condition and engine-related issues."
-    },
-    {
-      make: "LEXUS",
-      modelIncludes: ["ES350", "RX350", "IS250", "IS350"],
-      yearMin: 2006,
-      yearMax: 2012,
-      issue: "Oil leak and carbon buildup watch item on some engines",
-      severity: "Watch item",
-      inspect: "Check for oil seepage, rough idle, service history, and intake cleaning history if applicable.",
-      note: "Luxury badge or not, maintenance history still matters on older Lexus models."
-    },
-    {
-      make: "FORD",
-      modelIncludes: ["FOCUS", "FIESTA"],
-      yearMin: 2012,
-      yearMax: 2018,
-      issue: "Dual-clutch transmission complaints",
-      severity: "High priority check",
-      inspect: "Ask about hesitation, jerking, clutch replacements, transmission software updates, and stop-and-go drivability.",
-      note: "These models are commonly discussed for transmission behavior problems."
-    },
-    {
-      make: "FORD",
-      modelIncludes: ["F-150", "EXPEDITION", "MUSTANG"],
-      yearMin: 2011,
-      yearMax: 2017,
-      issue: "EcoBoost timing chain / turbo / carbon buildup watch item",
-      severity: "Important check",
-      inspect: "Ask about turbo service, cam phaser noise, timing issues, misfires, and oil change consistency.",
-      note: "Turbo Ford engines from this era are often checked closely for maintenance quality."
-    },
-    {
-      make: "FORD",
-      modelIncludes: ["ESCAPE", "FUSION", "EDGE"],
-      yearMin: 2013,
-      yearMax: 2019,
-      issue: "Coolant intrusion risk on some small turbo engines",
-      severity: "High priority check",
-      inspect: "Ask about coolant loss, overheating, white smoke, engine replacement, and dealership warranty repair history.",
-      note: "Some Ford engines from this period are often screened for coolant-related failures."
-    },
-    {
-      make: "CHEVROLET",
-      modelIncludes: ["SILVERADO", "SUBURBAN", "TAHOE", "AVALANCHE"],
-      yearMin: 2007,
-      yearMax: 2019,
-      issue: "AFM lifter and oil consumption watch item",
-      severity: "Important check",
-      inspect: "Listen for valvetrain noise, ask about lifter repair, oil usage, check-engine lights, and cylinder deactivation issues.",
-      note: "GM V8 trucks and SUVs are often discussed for AFM-related valvetrain problems."
-    },
-    {
-      make: "GMC",
-      modelIncludes: ["SIERRA", "YUKON"],
-      yearMin: 2007,
-      yearMax: 2019,
-      issue: "AFM lifter and oil consumption watch item",
-      severity: "Important check",
-      inspect: "Check for misfire history, lifter replacement, oil usage, and engine tick noises.",
-      note: "The same GM V8 concerns often apply here too."
-    },
-    {
-      make: "CHEVROLET",
-      modelIncludes: ["EQUINOX", "MALIBU"],
-      yearMin: 2010,
-      yearMax: 2017,
-      issue: "Oil consumption and timing chain watch item on some 4-cyl engines",
-      severity: "High priority check",
-      inspect: "Ask about added oil between changes, timing chain service, engine noise, and check-engine light history.",
-      note: "Some 4-cylinder GM engines from this period are commonly screened for these issues."
-    },
-    {
-      make: "JEEP",
-      modelIncludes: ["WRANGLER", "GRAND CHEROKEE", "CHEROKEE"],
-      yearMin: 2011,
-      yearMax: 2020,
-      issue: "Cooling, oil filter housing, and valvetrain watch item on some Pentastar vehicles",
-      severity: "Important check",
-      inspect: "Ask about cooling system work, oil leaks around filter housing, ticking sounds, and rocker-arm repairs.",
-      note: "Some Pentastar-powered vehicles are often checked for these repairs."
-    },
-    {
-      make: "RAM",
-      modelIncludes: ["1500", "2500"],
-      yearMin: 2011,
-      yearMax: 2020,
-      issue: "Hemi tick / exhaust manifold bolt / valvetrain watch item",
-      severity: "Important check",
-      inspect: "Listen for ticking on startup, ask about manifold bolt repair, cam/lifter work, and oil service history.",
-      note: "These trucks are commonly discussed for startup tick and valvetrain concerns."
-    },
-    {
-      make: "HYUNDAI",
-      modelIncludes: ["SONATA", "SANTA FE", "TUCSON", "ELANTRA"],
-      yearMin: 2011,
-      yearMax: 2020,
-      issue: "Engine failure / oil consumption watch item on some engines",
-      severity: "High priority check",
-      inspect: "Ask about engine replacement, knocking noise, oil usage, recall work, and warranty repairs.",
-      note: "Some Hyundai engines from this era are widely discussed for serious engine concerns."
-    },
-    {
-      make: "KIA",
-      modelIncludes: ["OPTIMA", "SORENTO", "SPORTAGE", "SOUL"],
-      yearMin: 2011,
-      yearMax: 2020,
-      issue: "Engine failure / oil consumption watch item on some engines",
-      severity: "High priority check",
-      inspect: "Check for engine replacement paperwork, recall completion, oil consumption, and knocking history.",
-      note: "Some Kia engines from this period are commonly screened for major engine issues."
-    },
-    {
-      make: "BMW",
-      modelIncludes: ["328I", "528I", "X3", "X5", "335I"],
-      yearMin: 2007,
-      yearMax: 2015,
-      issue: "Timing chain / guide wear and oil leak watch item",
-      severity: "Important check",
-      inspect: "Listen for rattling at startup, ask about timing chain service, oil filter housing leaks, and valve cover repairs.",
-      note: "BMW ownership cost can rise quickly when these items are ignored."
-    },
-    {
-      make: "AUDI",
-      modelIncludes: ["A4", "A5", "Q5", "A6"],
-      yearMin: 2009,
-      yearMax: 2017,
-      issue: "Timing chain tensioner and oil consumption concerns",
-      severity: "Important check",
-      inspect: "Ask about oil usage between changes, startup noise, tensioner updates, and PCV-related repairs.",
-      note: "These are common watch items on some Audi engines from this era."
-    },
-    {
-      make: "VOLKSWAGEN",
-      modelIncludes: ["PASSAT", "JETTA", "TIGUAN", "CC", "GTI"],
-      yearMin: 2008,
-      yearMax: 2016,
-      issue: "Timing chain tensioner / turbo / carbon buildup watch item",
-      severity: "Important check",
-      inspect: "Check for rough cold starts, timing service records, turbo performance issues, carbon cleaning, and oil consumption.",
-      note: "Maintenance quality matters a lot on these vehicles."
-    },
-    {
-      make: "MINI",
-      modelIncludes: ["COOPER", "COUNTRYMAN", "CLUBMAN"],
-      yearMin: 2007,
-      yearMax: 2015,
-      issue: "Timing chain and cooling system watch item",
-      severity: "Important check",
-      inspect: "Listen for chain rattle, ask about thermostat or water pump replacement, and verify oil leak history.",
-      note: "Some MINI models are commonly screened for these reliability issues."
-    },
-    {
-      make: "MAZDA",
-      modelIncludes: ["MAZDA3", "MAZDA6", "CX-5", "CX-9"],
-      yearMin: 2007,
-      yearMax: 2014,
-      issue: "Rust and suspension wear watch item on older models",
-      severity: "Watch item",
-      inspect: "Inspect underbody corrosion, suspension noise, tire wear, and maintenance records.",
-      note: "Some older Mazda vehicles are checked more closely for rust depending on climate history."
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VINsight</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f7f7f5;
+      color: #222;
+      margin: 0;
+      padding: 40px 20px;
+      line-height: 1.5;
     }
-  ];
-</script>
+    .wrap {
+      max-width: 760px;
+      margin: 0 auto;
+      background: white;
+      padding: 24px;
+      border-radius: 16px;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 2rem;
+    }
+    h2 {
+      margin-top: 28px;
+      font-size: 1.2rem;
+    }
+    input, button {
+      font-size: 1rem;
+      padding: 12px;
+      width: 100%;
+      margin-top: 10px;
+      box-sizing: border-box;
+    }
+    button {
+      background: #0b6b6f;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    .result, .recalls, .issues {
+      margin-top: 24px;
+      padding: 16px;
+      background: #f2f4f3;
+      border-radius: 12px;
+    }
+    .label {
+      font-weight: bold;
+    }
+    .warning {
+      color: #964219;
+      font-weight: bold;
+    }
+    .ok {
+      color: #2f6d2f;
+      font-weight: bold;
+    }
+    .recall-card, .issue-card {
+      background: white;
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 14px;
+      border: 1px solid #dddddd;
+    }
+    .recall-title, .issue-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .buyer-note {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #fff7e8;
+      color: #7a4b00;
+      font-weight: bold;
+    }
+    .issue-severity {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      background: #efe7d6;
+      color: #7a4b00;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>VINsight</h1>
+    <p>Know what to inspect before you buy.</p>
+
+    <label for="vin">Enter VIN</label>
+    <input id="vin" type="text" placeholder="Enter 17-character VIN" maxlength="17" />
+
+    <button id="analyzeBtn" onclick="analyzeVin()">Analyze VIN</button>
+
+    <div class="result" id="result">
+      Your vehicle report will show up here.
+    </div>
+
+    <div class="recalls" id="recallsBox" style="display:none;">
+      <h2>Recall check</h2>
+      <div id="recallsContent"></div>
+    </div>
+
+    <div class="issues" id="issuesBox" style="display:none;">
+      <h2>Known issues to inspect</h2>
+      <div id="issuesContent"></div>
+    </div>
+  </div>
+
+  <script>
+    function shorten(text, max = 180) {
+      if (!text) return "Not listed";
+      return text.length > max ? text.slice(0, max).trim() + "..." : text;
+    }
+
+    const knownIssuesLibrary = [
+      {
+        make: "NISSAN",
+        modelIncludes: ["ALTIMA", "SENTRA", "ROGUE", "PATHFINDER", "VERSA", "MAXIMA", "MURANO"],
+        yearMin: 2013,
+        yearMax: 2020,
+        issue: "CVT transmission reputation",
+        severity: "High priority check",
+        inspect: "Ask about transmission replacement, slipping, delayed acceleration, shuddering, overheating, and fluid service history.",
+        note: "These models are commonly discussed for CVT-related complaints and expensive transmission repairs."
+      },
+      {
+        make: "NISSAN",
+        modelIncludes: ["FRONTIER", "XTERRA", "PATHFINDER"],
+        yearMin: 2005,
+        yearMax: 2010,
+        issue: "Radiator / transmission cross-contamination risk",
+        severity: "High priority check",
+        inspect: "Ask if the radiator was replaced, check for transmission slipping, pink milky fluid, and evidence of cooling-system repair.",
+        note: "Some older Nissan trucks and SUVs are known for radiator failures that can damage the transmission."
+      },
+      {
+        make: "SUBARU",
+        modelIncludes: ["OUTBACK", "FORESTER", "IMPREZA", "LEGACY", "BAJA"],
+        yearMin: 2000,
+        yearMax: 2012,
+        issue: "Head gasket concern on older Subaru engines",
+        severity: "High priority check",
+        inspect: "Look for overheating history, coolant loss, oil leaks, sweet smell from engine bay, and head gasket replacement records.",
+        note: "Older Subaru models are often discussed for head gasket issues before later engine updates."
+      },
+      {
+        make: "SUBARU",
+        modelIncludes: ["FORESTER", "OUTBACK", "LEGACY", "CROSSTREK"],
+        yearMin: 2011,
+        yearMax: 2016,
+        issue: "Oil consumption watch item",
+        severity: "Important check",
+        inspect: "Ask how often oil needed to be topped off, check service records, and look for low-oil warning history.",
+        note: "Some Subaru engines from this period are often discussed for elevated oil consumption."
+      },
+      {
+        make: "HONDA",
+        modelIncludes: ["ACCORD", "ODYSSEY", "PILOT"],
+        yearMin: 1998,
+        yearMax: 2008,
+        issue: "Automatic transmission weakness on some V6 models",
+        severity: "High priority check",
+        inspect: "Check for harsh shifts, slipping, delayed engagement, rebuild history, and transmission fluid service records.",
+        note: "Older Honda V6 vehicles are often screened for transmission durability concerns."
+      },
+      {
+        make: "HONDA",
+        modelIncludes: ["CIVIC", "ACCORD", "CR-V"],
+        yearMin: 2016,
+        yearMax: 2021,
+        issue: "Turbo engine oil dilution check on some models",
+        severity: "Watch item",
+        inspect: "Ask about fuel smell in oil, frequent oil changes, software updates, and driving pattern history.",
+        note: "Not every vehicle is affected, but this is worth checking in service records."
+      },
+      {
+        make: "TOYOTA",
+        modelIncludes: ["CAMRY", "COROLLA", "RAV4", "MATRIX"],
+        yearMin: 2006,
+        yearMax: 2011,
+        issue: "Oil consumption watch item on some engines",
+        severity: "Important check",
+        inspect: "Ask how often oil was added between changes, inspect exhaust smoke, and verify maintenance records.",
+        note: "Some Toyota 4-cylinder engines from this era are often discussed for oil use."
+      },
+      {
+        make: "TOYOTA",
+        modelIncludes: ["PRIUS"],
+        yearMin: 2010,
+        yearMax: 2015,
+        issue: "EGR / head gasket / hybrid battery watch items",
+        severity: "Important check",
+        inspect: "Ask about battery health, cooling fan cleaning, rough cold starts, misfires, and EGR service.",
+        note: "Higher-mileage Prius vehicles are often checked for battery condition and engine-related issues."
+      },
+      {
+        make: "LEXUS",
+        modelIncludes: ["ES350", "RX350", "IS250", "IS350"],
+        yearMin: 2006,
+        yearMax: 2012,
+        issue: "Oil leak and carbon buildup watch item on some engines",
+        severity: "Watch item",
+        inspect: "Check for oil seepage, rough idle, service history, and intake cleaning history if applicable.",
+        note: "Luxury badge or not, maintenance history still matters on older Lexus models."
+      },
+      {
+        make: "FORD",
+        modelIncludes: ["FOCUS", "FIESTA"],
+        yearMin: 2012,
+        yearMax: 2018,
+        issue: "Dual-clutch transmission complaints",
+        severity: "High priority check",
+        inspect: "Ask about hesitation, jerking, clutch replacements, transmission software updates, and stop-and-go drivability.",
+        note: "These models are commonly discussed for transmission behavior problems."
+      },
+      {
+        make: "FORD",
+        modelIncludes: ["F-150", "EXPEDITION", "MUSTANG"],
+        yearMin: 2011,
+        yearMax: 2017,
+        issue: "EcoBoost timing chain / turbo / carbon buildup watch item",
+        severity: "Important check",
+        inspect: "Ask about turbo service, cam phaser noise, timing issues, misfires, and oil change consistency.",
+        note: "Turbo Ford engines from this era are often checked closely for maintenance quality."
+      },
+      {
+        make: "FORD",
+        modelIncludes: ["ESCAPE", "FUSION", "EDGE"],
+        yearMin: 2013,
+        yearMax: 2019,
+        issue: "Coolant intrusion risk on some small turbo engines",
+        severity: "High priority check",
+        inspect: "Ask about coolant loss, overheating, white smoke, engine replacement, and dealership warranty repair history.",
+        note: "Some Ford engines from this period are often screened for coolant-related failures."
+      },
+      {
+        make: "CHEVROLET",
+        modelIncludes: ["SILVERADO", "SUBURBAN", "TAHOE", "AVALANCHE"],
+        yearMin: 2007,
+        yearMax: 2019,
+        issue: "AFM lifter and oil consumption watch item",
+        severity: "Important check",
+        inspect: "Listen for valvetrain noise, ask about lifter repair, oil usage, check-engine lights, and cylinder deactivation issues.",
+        note: "GM V8 trucks and SUVs are often discussed for AFM-related valvetrain problems."
+      },
+      {
+        make: "GMC",
+        modelIncludes: ["SIERRA", "YUKON"],
+        yearMin: 2007,
+        yearMax: 2019,
+        issue: "AFM lifter and oil consumption watch item",
+        severity: "Important check",
+        inspect: "Check for misfire history, lifter replacement, oil usage, and engine tick noises.",
+        note: "The same GM V8 concerns often apply here too."
+      },
+      {
+        make: "CHEVROLET",
+        modelIncludes: ["EQUINOX", "MALIBU"],
+        yearMin: 2010,
+        yearMax: 2017,
+        issue: "Oil consumption and timing chain watch item on some 4-cyl engines",
+        severity: "High priority check",
+        inspect: "Ask about added oil between changes, timing chain service, engine noise, and check-engine light history.",
+        note: "Some 4-cylinder GM engines from this period are commonly screened for these issues."
+      },
+      {
+        make: "JEEP",
+        modelIncludes: ["WRANGLER", "GRAND CHEROKEE", "CHEROKEE"],
+        yearMin: 2011,
+        yearMax: 2020,
+        issue: "Cooling, oil filter housing, and valvetrain watch item on some Pentastar vehicles",
+        severity: "Important check",
+        inspect: "Ask about cooling system work, oil leaks around filter housing, ticking sounds, and rocker-arm repairs.",
+        note: "Some Pentastar-powered vehicles are often checked for these repairs."
+      },
+      {
+        make: "RAM",
+        modelIncludes: ["1500", "2500"],
+        yearMin: 2011,
+        yearMax: 2020,
+        issue: "Hemi tick / exhaust manifold bolt / valvetrain watch item",
+        severity: "Important check",
+        inspect: "Listen for ticking on startup, ask about manifold bolt repair, cam/lifter work, and oil service history.",
+        note: "These trucks are commonly discussed for startup tick and valvetrain concerns."
+      },
+      {
+        make: "HYUNDAI",
+        modelIncludes: ["SONATA", "SANTA FE", "TUCSON", "ELANTRA"],
+        yearMin: 2011,
+        yearMax: 2020,
+        issue: "Engine failure / oil consumption watch item on some engines",
+        severity: "High priority check",
+        inspect: "Ask about engine replacement, knocking noise, oil usage, recall work, and warranty repairs.",
+        note: "Some Hyundai engines from this era are widely discussed for serious engine concerns."
+      },
+      {
+        make: "KIA",
+        modelIncludes: ["OPTIMA", "SORENTO", "SPORTAGE", "SOUL"],
+        yearMin: 2011,
+        yearMax: 2020,
+        issue: "Engine failure / oil consumption watch item on some engines",
+        severity: "High priority check",
+        inspect: "Check for engine replacement paperwork, recall completion, oil consumption, and knocking history.",
+        note: "Some Kia engines from this period are commonly screened for major engine issues."
+      },
+      {
+        make: "BMW",
+        modelIncludes: ["328I", "528I", "X3", "X5", "335I"],
+        yearMin: 2007,
+        yearMax: 2015,
+        issue: "Timing chain / guide wear and oil leak watch item",
+        severity: "Important check",
+        inspect: "Listen for rattling at startup, ask about timing chain service, oil filter housing leaks, and valve cover repairs.",
+        note: "BMW ownership cost can rise quickly when these items are ignored."
+      },
+      {
+        make: "AUDI",
+        modelIncludes: ["A4", "A5", "Q5", "A6"],
+        yearMin: 2009,
+        yearMax: 2017,
+        issue: "Timing chain tensioner and oil consumption concerns",
+        severity: "Important check",
+        inspect: "Ask about oil usage between changes, startup noise, tensioner updates, and PCV-related repairs.",
+        note: "These are common watch items on some Audi engines from this era."
+      },
+      {
+        make: "VOLKSWAGEN",
+        modelIncludes: ["PASSAT", "JETTA", "TIGUAN", "CC", "GTI"],
+        yearMin: 2008,
+        yearMax: 2016,
+        issue: "Timing chain tensioner / turbo / carbon buildup watch item",
+        severity: "Important check",
+        inspect: "Check for rough cold starts, timing service records, turbo performance issues, carbon cleaning, and oil consumption.",
+        note: "Maintenance quality matters a lot on these vehicles."
+      },
+      {
+        make: "MINI",
+        modelIncludes: ["COOPER", "COUNTRYMAN", "CLUBMAN"],
+        yearMin: 2007,
+        yearMax: 2015,
+        issue: "Timing chain and cooling system watch item",
+        severity: "Important check",
+        inspect: "Listen for chain rattle, ask about thermostat or water pump replacement, and verify oil leak history.",
+        note: "Some MINI models are commonly screened for these reliability issues."
+      },
+      {
+        make: "MAZDA",
+        modelIncludes: ["MAZDA3", "MAZDA6", "CX-5", "CX-9"],
+        yearMin: 2007,
+        yearMax: 2014,
+        issue: "Rust and suspension wear watch item on older models",
+        severity: "Watch item",
+        inspect: "Inspect underbody corrosion, suspension noise, tire wear, and maintenance records.",
+        note: "Some older Mazda vehicles are checked more closely for rust depending on climate history."
+      }
+    ];
+
+    function getKnownIssues(vehicle) {
+      const make = (vehicle.Make || "").toUpperCase();
+      const model = (vehicle.Model || "").toUpperCase();
+      const year = parseInt(vehicle.ModelYear || "0", 10);
+
+      const matches = knownIssuesLibrary.filter(item => {
+        const makeMatch = item.make === make;
+        const modelMatch = item.modelIncludes.some(m => model.includes(m));
+        const yearMatch = year >= item.yearMin && year <= item.yearMax;
+        return makeMatch && modelMatch && yearMatch;
+      });
+
+      if (matches.length > 0) {
+        return matches;
+      }
+
+      return [
+        {
+          issue: "No specific library match found",
+          severity: "General used-car inspection",
+          inspect: "Check maintenance records, fluid leaks, cold start behavior, transmission shift quality, suspension noise, tire wear, and warning lights.",
+          note: "Even when no specific rule matches, always verify service history and get a pre-purchase inspection."
+        }
+      ];
+    }
+
+    async function analyzeVin() {
+      const vinInput = document.getElementById('vin');
+      const button = document.getElementById('analyzeBtn');
+      const result = document.getElementById('result');
+      const recallsBox = document.getElementById('recallsBox');
+      const recallsContent = document.getElementById('recallsContent');
+      const issuesBox = document.getElementById('issuesBox');
+      const issuesContent = document.getElementById('issuesContent');
+      const vin = vinInput.value.trim().toUpperCase();
+
+      recallsBox.style.display = 'none';
+      recallsContent.innerHTML = '';
+      issuesBox.style.display = 'none';
+      issuesContent.innerHTML = '';
+
+      if (vin.length !== 17) {
+        result.innerHTML = "Please enter a valid 17-character VIN.";
+        return;
+      }
+
+      button.disabled = 
