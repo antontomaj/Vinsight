@@ -14,7 +14,7 @@
       line-height: 1.5;
     }
     .wrap {
-      max-width: 700px;
+      max-width: 760px;
       margin: 0 auto;
       background: white;
       padding: 24px;
@@ -24,6 +24,10 @@
     h1 {
       margin-top: 0;
       font-size: 2rem;
+    }
+    h2 {
+      margin-top: 28px;
+      font-size: 1.2rem;
     }
     input, button {
       font-size: 1rem;
@@ -43,14 +47,26 @@
       opacity: 0.7;
       cursor: not-allowed;
     }
-    .result {
+    .result, .recalls {
       margin-top: 24px;
       padding: 16px;
       background: #f2f4f3;
       border-radius: 12px;
-      white-space: normal;
     }
     .label {
+      font-weight: bold;
+    }
+    .recall-item {
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid #d9d9d9;
+    }
+    .warning {
+      color: #964219;
+      font-weight: bold;
+    }
+    .ok {
+      color: #2f6d2f;
       font-weight: bold;
     }
   </style>
@@ -68,6 +84,11 @@
     <div class="result" id="result">
       Your vehicle report will show up here.
     </div>
+
+    <div class="recalls" id="recallsBox" style="display:none;">
+      <h2>Recall check</h2>
+      <div id="recallsContent"></div>
+    </div>
   </div>
 
   <script>
@@ -75,7 +96,12 @@
       const vinInput = document.getElementById('vin');
       const button = document.getElementById('analyzeBtn');
       const result = document.getElementById('result');
+      const recallsBox = document.getElementById('recallsBox');
+      const recallsContent = document.getElementById('recallsContent');
       const vin = vinInput.value.trim().toUpperCase();
+
+      recallsBox.style.display = 'none';
+      recallsContent.innerHTML = '';
 
       if (vin.length !== 17) {
         result.innerHTML = "Please enter a valid 17-character VIN.";
@@ -87,29 +113,62 @@
       result.innerHTML = "Checking VIN...";
 
       try {
-        const url = `https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvalues/${vin}?format=json`;
-        const response = await fetch(url);
-        const data = await response.json();
-        const vehicle = data.Results && data.Results[0];
+        const decodeUrl = `https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvalues/${vin}?format=json`;
+        const decodeResponse = await fetch(decodeUrl);
+        const decodeData = await decodeResponse.json();
+        const vehicle = decodeData.Results && decodeData.Results[0];
 
         if (!vehicle) {
           result.innerHTML = "No data returned for this VIN.";
           return;
         }
 
+        const year = vehicle.ModelYear || "";
+        const make = vehicle.Make || "";
+        const model = vehicle.Model || "";
+
         result.innerHTML = `
           <div><span class="label">VIN:</span> ${vin}</div>
-          <div><span class="label">Year:</span> ${vehicle.ModelYear || "Not found"}</div>
-          <div><span class="label">Make:</span> ${vehicle.Make || "Not found"}</div>
-          <div><span class="label">Model:</span> ${vehicle.Model || "Not found"}</div>
+          <div><span class="label">Year:</span> ${year || "Not found"}</div>
+          <div><span class="label">Make:</span> ${make || "Not found"}</div>
+          <div><span class="label">Model:</span> ${model || "Not found"}</div>
           <div><span class="label">Trim:</span> ${vehicle.Trim || "Not found"}</div>
           <div><span class="label">Body Class:</span> ${vehicle.BodyClass || "Not found"}</div>
           <div><span class="label">Engine Cylinders:</span> ${vehicle.EngineCylinders || "Not found"}</div>
           <div><span class="label">Displacement (L):</span> ${vehicle.DisplacementL || "Not found"}</div>
           <div><span class="label">Fuel Type:</span> ${vehicle.FuelTypePrimary || "Not found"}</div>
-          <br>
-          <div><span class="label">Next step:</span> Add recalls and known issue analysis.</div>
         `;
+
+        if (year && make && model) {
+          button.textContent = "Checking recalls...";
+          const recallUrl = `https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&modelYear=${encodeURIComponent(year)}`;
+          const recallResponse = await fetch(recallUrl);
+          const recallData = await recallResponse.json();
+          const recalls = recallData.results || [];
+
+          recallsBox.style.display = 'block';
+
+          if (recalls.length === 0) {
+            recallsContent.innerHTML = `
+              <div class="ok">No recall records were returned for this year, make, and model.</div>
+              <p>This is a general year/make/model check, not a guarantee for the exact VIN.</p>
+            `;
+          } else {
+            recallsContent.innerHTML = `
+              <div class="warning">${recalls.length} recall record(s) found.</div>
+              <p>This recall check is based on decoded year, make, and model, so verify VIN-specific applicability separately.</p>
+              ${recalls.slice(0, 5).map(r => `
+                <div class="recall-item">
+                  <div><span class="label">Campaign:</span> ${r.NHTSACampaignNumber || "Not listed"}</div>
+                  <div><span class="label">Component:</span> ${r.Component || "Not listed"}</div>
+                  <div><span class="label">Summary:</span> ${r.Summary || "Not listed"}</div>
+                  <div><span class="label">Consequence:</span> ${r.Conequence || r.Consequence || "Not listed"}</div>
+                  <div><span class="label">Remedy:</span> ${r.Remedy || "Not listed"}</div>
+                </div>
+              `).join('')}
+            `;
+          }
+        }
       } catch (error) {
         result.innerHTML = "Something went wrong while looking up that VIN.";
       } finally {
