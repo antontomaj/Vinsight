@@ -415,4 +415,88 @@
         return;
       }
 
-      button.disabled = 
+      button.disabled = true;
+      button.textContent = "Looking up VIN...";
+      result.innerHTML = "Checking VIN...";
+
+      try {
+        const decodeUrl = `https://vpic.nhtsa.dot.gov/api/vehicles/decodevinvalues/${vin}?format=json`;
+        const decodeResponse = await fetch(decodeUrl);
+        const decodeData = await decodeResponse.json();
+        const vehicle = decodeData.Results && decodeData.Results[0];
+
+        if (!vehicle) {
+          result.innerHTML = "No data returned for this VIN.";
+          return;
+        }
+
+        const year = vehicle.ModelYear || "";
+        const make = vehicle.Make || "";
+        const model = vehicle.Model || "";
+
+        result.innerHTML = `
+          <div><span class="label">VIN:</span> ${vin}</div>
+          <div><span class="label">Year:</span> ${year || "Not found"}</div>
+          <div><span class="label">Make:</span> ${make || "Not found"}</div>
+          <div><span class="label">Model:</span> ${model || "Not found"}</div>
+          <div><span class="label">Trim:</span> ${vehicle.Trim || "Not found"}</div>
+          <div><span class="label">Body Class:</span> ${vehicle.BodyClass || "Not found"}</div>
+          <div><span class="label">Engine Cylinders:</span> ${vehicle.EngineCylinders || "Not found"}</div>
+          <div><span class="label">Displacement (L):</span> ${vehicle.DisplacementL || "Not found"}</div>
+          <div><span class="label">Fuel Type:</span> ${vehicle.FuelTypePrimary || "Not found"}</div>
+        `;
+
+        if (year && make && model) {
+          button.textContent = "Checking recalls...";
+          const recallUrl = `https://api.nhtsa.gov/recalls/recallsByVehicle?make=${encodeURIComponent(make)}&model=${encodeURIComponent(model)}&modelYear=${encodeURIComponent(year)}`;
+          const recallResponse = await fetch(recallUrl);
+          const recallData = await recallResponse.json();
+          const recalls = recallData.results || [];
+
+          recallsBox.style.display = 'block';
+
+          if (recalls.length === 0) {
+            recallsContent.innerHTML = `
+              <div class="ok">No recall records were returned for this year, make, and model.</div>
+              <p>This is a general check, not a guarantee for the exact VIN.</p>
+            `;
+          } else {
+            recallsContent.innerHTML = `
+              <div class="warning">${recalls.length} recall record(s) found.</div>
+              <p>Showing the first 3 recalls only. Verify recall completion with the seller or dealer.</p>
+              ${recalls.slice(0, 3).map(r => `
+                <div class="recall-card">
+                  <div class="recall-title">${r.NHTSACampaignNumber || "No campaign number"} • ${r.Component || "Component not listed"}</div>
+                  <div><span class="label">Problem:</span> ${shorten(r.Summary, 160)}</div>
+                  <div><span class="label">Risk:</span> ${shorten(r.Consequence || r.Conequence, 140)}</div>
+                  <div><span class="label">Fix:</span> ${shorten(r.Remedy, 140)}</div>
+                </div>
+              `).join('')}
+              <div class="buyer-note">Ask the seller for proof that recall repairs were completed.</div>
+            `;
+          }
+
+          const issues = getKnownIssues(vehicle);
+          issuesBox.style.display = 'block';
+          issuesContent.innerHTML = `
+            ${issues.map(item => `
+              <div class="issue-card">
+                <div class="issue-title">${item.issue}</div>
+                <div><span class="label">What to inspect:</span> ${item.inspect}</div>
+                <div style="margin-top:8px;"><span class="label">Why it matters:</span> ${item.note}</div>
+                <div class="issue-severity">${item.severity}</div>
+              </div>
+            `).join('')}
+            <div class="buyer-note">If the vehicle matches one of these patterns, ask for service records and consider a pre-purchase inspection before buying.</div>
+          `;
+        }
+      } catch (error) {
+        result.innerHTML = "Something went wrong while looking up that VIN.";
+      } finally {
+        button.disabled = false;
+        button.textContent = "Analyze VIN";
+      }
+    }
+  </script>
+</body>
+</html>
