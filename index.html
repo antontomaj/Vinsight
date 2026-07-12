@@ -56,17 +56,31 @@
     .label {
       font-weight: bold;
     }
-    .recall-item {
-      margin-top: 16px;
-      padding-top: 16px;
-      border-top: 1px solid #d9d9d9;
-    }
     .warning {
       color: #964219;
       font-weight: bold;
     }
     .ok {
       color: #2f6d2f;
+      font-weight: bold;
+    }
+    .recall-card {
+      background: white;
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 14px;
+      border: 1px solid #dddddd;
+    }
+    .recall-title {
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+    .buyer-note {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #fff7e8;
+      color: #7a4b00;
       font-weight: bold;
     }
   </style>
@@ -92,6 +106,11 @@
   </div>
 
   <script>
+    function shorten(text, max = 180) {
+      if (!text) return "Not listed";
+      return text.length > max ? text.slice(0, max).trim() + "..." : text;
+    }
+
     async function analyzeVin() {
       const vinInput = document.getElementById('vin');
       const button = document.getElementById('analyzeBtn');
@@ -151,21 +170,21 @@
           if (recalls.length === 0) {
             recallsContent.innerHTML = `
               <div class="ok">No recall records were returned for this year, make, and model.</div>
-              <p>This is a general year/make/model check, not a guarantee for the exact VIN.</p>
+              <p>This is a general check, not a guarantee for the exact VIN.</p>
             `;
           } else {
             recallsContent.innerHTML = `
               <div class="warning">${recalls.length} recall record(s) found.</div>
-              <p>This recall check is based on decoded year, make, and model, so verify VIN-specific applicability separately.</p>
-              ${recalls.slice(0, 5).map(r => `
-                <div class="recall-item">
-                  <div><span class="label">Campaign:</span> ${r.NHTSACampaignNumber || "Not listed"}</div>
-                  <div><span class="label">Component:</span> ${r.Component || "Not listed"}</div>
-                  <div><span class="label">Summary:</span> ${r.Summary || "Not listed"}</div>
-                  <div><span class="label">Consequence:</span> ${r.Conequence || r.Consequence || "Not listed"}</div>
-                  <div><span class="label">Remedy:</span> ${r.Remedy || "Not listed"}</div>
+              <p>Showing the first 3 recalls only. Verify recall completion with the seller or dealer.</p>
+              ${recalls.slice(0, 3).map(r => `
+                <div class="recall-card">
+                  <div class="recall-title">${r.NHTSACampaignNumber || "No campaign number"} • ${r.Component || "Component not listed"}</div>
+                  <div><span class="label">Problem:</span> ${shorten(r.Summary, 160)}</div>
+                  <div><span class="label">Risk:</span> ${shorten(r.Consequence || r.Conequence, 140)}</div>
+                  <div><span class="label">Fix:</span> ${shorten(r.Remedy, 140)}</div>
                 </div>
               `).join('')}
+              <div class="buyer-note">Ask the seller for proof that recall repairs were completed.</div>
             `;
           }
         }
